@@ -7,12 +7,20 @@
 
     outputs = { self, nixpkgs }:
       let
-        pkgs = import nixpkgs {
-          config.allowUnfree = true;
-          system = "x86_64-linux";
-        };
+        # Define the supported systems
+        systems = [ "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ];
+        
+        # Helper function to create system-specific packages
+        forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f {
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+          };
+        });
       in 
       {
-        packages.x86_64-linux.talon = pkgs.callPackage ./talon.nix {};
+        packages = forAllSystems ({ pkgs }: {
+          talon = pkgs.callPackage ./talon.nix {};
+        });
       };
 }
