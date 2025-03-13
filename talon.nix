@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchzip, fetchurl, steam-run, makeWrapper }:
+{ lib, stdenv, fetchzip, fetchurl, steam-run, makeWrapper, undmg }:
 
 let
   # Define platform-specific values
@@ -20,10 +20,16 @@ stdenv.mkDerivation rec {
     inherit (platformData) url sha256;
   };
 
-  nativeBuildInputs = [ makeWrapper ];
+  nativeBuildInputs = [ makeWrapper ] ++ lib.optionals stdenv.isDarwin [ undmg ];
   
   dontBuild = true;
   dontPatchELF = true;
+
+  unpackPhase = if stdenv.isDarwin then ''
+    undmg $src
+  '' else ''
+    unpackPhase
+  '';
 
   installPhase = if stdenv.isDarwin then ''
     mkdir -p $out/Applications
