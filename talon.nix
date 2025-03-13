@@ -1,22 +1,24 @@
-{ lib, stdenv, fetchzip, steam-run, makeWrapper }:
+{ lib, stdenv, fetchzip, fetchurl, steam-run, makeWrapper }:
 
 let
   # Define platform-specific values
   platformData = if stdenv.isDarwin then {
     url = "https://talonvoice.com/dl/latest/talon-mac.dmg";
-    sha256 = "sha256-1pfslw5nrfb7w153zckcafacz2vr8ymf5gh5mvb2gi22n0d2b4h4="; # You'll need to replace this with the actual hash
+    sha256 = "sha256-QC+LSsFy2XNg47YMN1PmUr2sxAj5K3lUf5bDThrLZ70=";
+    fetcher = fetchurl;
   } else {
     url = "https://talonvoice.com/dl/latest/talon-linux.tar.xz";
     sha256 = "sha256-j3D2Tzlm+au6E8Y+XLAMPnGFk9zUz3znjjeAzY7AIHU=";
+    fetcher = fetchzip;
   };
 in
 stdenv.mkDerivation rec {
   pname = "talon";
   version = "0.4.0";
   
-  src = fetchzip (platformData // {
+  src = platformData.fetcher {
     inherit (platformData) url sha256;
-  });
+  };
 
   nativeBuildInputs = [ makeWrapper ];
   
